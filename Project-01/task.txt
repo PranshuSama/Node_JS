@@ -1,0 +1,16 @@
+// REST API
+
+GET /users - HTML document render 
+GET /api/users — List all users - DONE
+GET /api/users/l - Get the user with ID 1 - DONE
+GET /api/users/2 — Get the user with ID 2 - DONE
+
+// we are using this /api thing so that we can make hybrid server as for browser and for mobile app etc etc. 
+
+POST /api/users — Create new user
+
+PATCH /api/users/1 - Edit the user with ID 1
+DELETE /api/users/1 - Delete the User with ID 1
+
+// mockarro website se random data generate
+
