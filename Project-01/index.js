@@ -29,6 +29,7 @@ app
     .get((req,res) => {
         const Id = Number(req.params.id);
         const user = users.find(user => user.id === Id);
+        if(!user) return res.status(404).json({error : "user not found!"});
         res.json(user);
     })
     .patch((req,res) => {
@@ -63,9 +64,10 @@ app
 app.post("/api/users", (req,res) => {
     // TODO : create a new user with id
     const body = req.body;
+    if(!body || !body.email || !body.gender || !body.last_name || !body.first_name || !body.job_title) return res.status(400).json({error : "all fields are necessary!"});
     users.push({id: users.length + 1 , ...body});
     fs.writeFile("./MOCK_DATA.json", JSON.stringify(users), (err,data) => {
-        return res.json({status : "sucess", id : users.length});
+        return res.status(201).json({status : "sucess", id : users.length});
     });
 });
 
