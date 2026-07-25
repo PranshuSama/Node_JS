@@ -1,34 +1,78 @@
 const express = require("express")
-const users = require("./MOCK_DATA.json");
 const fs = require("fs");
+const mongoose = require("mongoose");
+const { error } = require("console");
 
 const app = express();
 const PORT = 8000;
+
+// CONNECTION
+mongoose.connect("mongodb://127.0.0.1:27017/my-first-project")
+        .then( () => console.log("MongoDB is Connected!"))
+        .catch((error) => console.log("Mongo error: ", error));
+
+
+// SCHEMA
+const userSchema = new mongoose.Schema({
+    firstName : {
+        type : String,
+        required : true,
+    },
+    lastName : {
+        type : String,
+    },
+    email : {
+        type : String,
+        required : true,
+        unique : true,
+    },
+    jobTitle : {
+        type : String,
+    },
+    gender : {
+        type : String,
+    },
+
+}, {timestamps : true}
+);
+
+// MODEL
+const User = mongoose.model("user",userSchema);
+
+
 
 // Middleware - Plugins
 app.use(express.json());
 app.use(express.urlencoded({extended : false}));
 
-app.get("/users" , (req,res) => {
+app.get("/users" , async(req,res) => {
+    const allDbUsers = await User.find({});
     const html = `
     <ul>
-        ${users.map((user) => `<li>${user.first_name}</li>`).join("")}
-    <ul>
+        ${allDbUsers.map((user) => `<li>${user.firstName} - ${user.email} </li>`)
+        .join("")}
+    </ul>
     `;
     res.send(html);
 
 })
 
 //REST APIs
-app.get("/api/users", (req,res) => {
-    return res.json(users);
+app.get("/api/users", async(req,res) => {
+    const allDbUsers = await User.find({});
+    return res.json(allDbUsers);
 });
 
 app
     .route("/api/users/:id")
-    .get((req,res) => {
-        const Id = Number(req.params.id);
-        const user = users.find(user => user.id === Id);
+    .get(async (req,res) => {
+        const userId = req.params.id.trim();
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ error: "invalid user id" });
+        }
+
+        const user = await User.findById(userId);
         if(!user) return res.status(404).json({error : "user not found!"});
         res.json(user);
     })
@@ -46,29 +90,41 @@ app
             return res.json({status: "success"});
         });
     })
-    .delete((req,res) => {
-        const Id = Number(req.params.id);
-        const userIndex = users.findIndex(user => user.id === Id);
+    .delete(async (req,res) => {
+        const userId = req.params.id.trim();
 
-        if (userIndex === -1) {
-            return res.status(404).json({status: "User not found"});
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ error: "invalid user id" });
         }
 
-        users.splice(userIndex, 1);
-        fs.writeFile("./MOCK_DATA.json", JSON.stringify(users), (err, data) => {
-            return res.json({status: "success"});
-        });
+        const deletedUser = await User.findByIdAndDelete(userId);
+
+        if (!deletedUser) {
+            return res.status(404).json({ status: "User not found" });
+        }
+
+        return res.json({ status: "success" });
     }
 );
 
-app.post("/api/users", (req,res) => {
+app.post("/api/users", async(req,res) => {
     // TODO : create a new user with id
     const body = req.body;
-    if(!body || !body.email || !body.gender || !body.last_name || !body.first_name || !body.job_title) return res.status(400).json({error : "all fields are necessary!"});
-    users.push({id: users.length + 1 , ...body});
-    fs.writeFile("./MOCK_DATA.json", JSON.stringify(users), (err,data) => {
-        return res.status(201).json({status : "sucess", id : users.length});
+    if(!body || !body.email || !body.gender || !body.last_name || !body.first_name || !body.job_title){
+        return res.status(400).json({error : "all fields are necessary!"});
+    }
+    const result = await User.create({
+        firstName : body.first_name,
+        lastName : body.last_name,
+        email : body.email,
+        gender : body.gender,
+        jobTitle : body.job_title,
     });
+
+    console.log("result : ",result);
+    return res.status(201).json({msg : "success!"});
+    
+    
 });
 
 app.listen(PORT, () => console.log(`Server is started at PORT: ${PORT}`));
