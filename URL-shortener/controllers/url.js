@@ -4,17 +4,19 @@ const URL = require("../models/url");
 
 async function handleGenerateNewShortURL (req,res) {
     const body = req.body;
-    if (!body || !body.url) {
+    const originalUrl = body?.url || body?.redirectedURL;
+
+    if (!originalUrl) {
         return res.status(400).json({ message : "url is required" });
     }
     const shortID = nanoid(8);
     await URL.create({
         shortId : shortID,
-        redirectedURL : body.url,
+        redirectedURL : originalUrl,
         visistedHistory : [],
     });
 
-    return res.json({ id : shortID });
+    return res.render("home", { id : shortID });
 }
 
 async function handleGetAnalytics(req,res){
