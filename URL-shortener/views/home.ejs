@@ -13,7 +13,23 @@
   <body>
     <h1>Welcome to URL Shortener</h1>
     <% if (locals.id) { %>
-    <p>Shortened URL: http://localhost:8001/<%= id %></p>
+    <p>
+      Shortened URL:
+      <a
+        href="http://localhost:8001/<%= id %>"
+        target="_blank"
+        rel="noreferrer"
+      >
+        http://localhost:8001/<%= id %>
+      </a>
+    </p>
+    <input
+      type="text"
+      value="http://localhost:8001/<%= id %>"
+      readonly
+      style="width: 320px"
+      onclick="this.select()"
+    />
     <% } %>
 
     <form action="/url" method="POST">
