@@ -12,6 +12,14 @@ const commands = [
   {
     name: "create",
     description: "Create a short URL",
+    options: [
+      {
+        name: "url",
+        description: "The URL to shorten",
+        type: 3, // String
+        required: true,
+      },
+    ],
   },
 ];
 
