@@ -25,9 +25,9 @@ async function handleNewUserLogin(req, res) {
       error: "Invalid email or password",
     });
   }
-  const sessionId = uuidv4();
-  setUser(sessionId, resut);
-  res.cookie("uid", sessionId, { httpOnly: true });
+
+  const token = setUser(resut);
+  res.cookie("uid", token, { httpOnly: true });
   return res.redirect("/");
 }
 
